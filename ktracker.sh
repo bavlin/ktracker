@@ -26,6 +26,7 @@ is_linear=${options[7]}
 is_exponential=${options[8]}
 track_num=${options[9]}
 resource_type_id=${options[10]}
+event=${options[11]}
 
 track() {
   local max_attempt=5
@@ -66,7 +67,7 @@ track() {
       resource_name=$(echo $resource_json_output | jq '.items['${cur_idx_resource}'].metadata.name' | tr -d "\"")
       IFS=','
       if [[ $resource_type_id = 1 ]]; then
-        pods_track_output=$(bash pods.sh "$resource_json_output" "$resource_type" "$cur_idx_resource" "$resource_name")
+        pods_track_output=$(bash pods.sh "$resource_json_output" "$resource_type" "$cur_idx_resource" "$resource_name" "$event")
         read -a resource_track_output <<< "$pods_track_output"
       elif [[ $resource_type_id = 2 ]]; then
         pods_track_output=$(bash pods.sh $resource_json_output $resource_type $cur_idx_resource $resource_name)

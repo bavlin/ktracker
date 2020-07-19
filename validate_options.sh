@@ -69,6 +69,11 @@ do
     shift
     shift
     ;;
+    -et|--event)
+    event="$2"
+    shift
+    shift
+    ;;
     *)
     echo "Unknown argument $1; Use: ktracker --help | -h for help;  exiting..."
     exit 1
@@ -85,5 +90,5 @@ if [[ ! -z $is_exponential && ! -z $is_linear ]]; then
   echo "Use: ktracker --help | -h for help; exiting ..."
   exit 1
 fi
-echo "$resource_type,$name,$namespace,$label,$limit,$is_daemon,$email,$is_linear,$is_exponential,$track_num,$resource_type_id"
+echo "$resource_type,$name,$namespace,$label,$limit,$is_daemon,$email,$is_linear,$is_exponential,$track_num,$resource_type_id,$event"
 
