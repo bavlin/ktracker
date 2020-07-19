@@ -1,4 +1,5 @@
 #!/bin/bash
+
 IFS_BACKUP=$IFS
 IFS=','
 output=$(sh validate_options.sh "$@")
@@ -20,8 +21,9 @@ is_linear=${options[7]}
 is_exponential=${options[8]}
 track_num=${options[9]}
 
+
 track() {
-  local max_attempt=5
+  local max_attempt=1
   local timeout=2
   local attempt=0
   local increment=1
@@ -39,7 +41,7 @@ track() {
   if [[ $label != "" ]]; then
     label_option="-l $label"
   fi
-  echo "Tracking $resource_type in $cur_namespace namespace"
+  echo "Tracking $resource_type inside $cur_namespace namespace"
   while [[ $attempt < $max_attempt ]];
   do
     resource_json_output=$(kubectl get $resource_type $label_option -o json --sort-by=.metadata.creationTimestamp -n ${cur_namespace})
@@ -48,7 +50,7 @@ track() {
     if [[ $track_num != "" && $num_k8s_resources -ge $track_num ]]; then
       echo "Tracking $track_num $resource_type out of $num_k8s_resources $resource_type" 
     elif [[ $num_k8s_resources = "" || $num_k8s_resources = 0 ]]; then
-      echo "Looks like there are 0 $resource_type to track in $cur_namespace namespace based on the options provided"
+      echo "Since there are 0 $resource_type in $cur_namespace, doing nothing" 
     else
       echo "Tracking all $track_num $resource_type"
       track_num=$num_k8s_resources
@@ -57,7 +59,20 @@ track() {
     while [[ $cur_idx_resource -lt $track_num ]]
     do
       resource_name=$(echo $resource_json_output | jq '.items['${cur_idx_resource}'].metadata.name' | tr -d "\"")
-      echo "Current resource found is $resource_name"
+      resource_status=$(echo $resource_json_output | jq '.items['${cur_idx_resource}'].status.containerStatuses[].state | keys | .[0]' | tr -d "\"")
+      if [[ $resource_status = "failed" ]]; then
+        exit_code=$(echo $resource_json_output | jq '.terminated.exitCode')
+        echo "$resource_type found => $resource_name has finished with status failed and the exit code is $exit_code"
+      elif [[ $resource_status = "running" ]]; then
+        echo "$resource_type found => $resource_name is still in running status"
+      elif [[ $resource_status = "pending" ]]; then
+        echo "$resource_type found => $resource_name is still in pending status"
+      elif [[ $resource_status = "succeeded" ]]; then
+        exit_code=$(echo $resource_json_output | jq '.terminated.exitCode')
+        echo "$resource_type found => $resource_name has succeeded with exit code $exit_code"
+      elif [[ $resource_status = "unknown" ]]; then
+        echo "$resource_type found => $resource_name is in Unknown status"
+      fi
       cur_idx_resource=$(( cur_idx_resource + 1 ))
     done
     sleep $timeout
