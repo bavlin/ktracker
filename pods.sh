@@ -23,4 +23,4 @@ elif [[ $resource_status = "unknown" ]]; then
   #echo "$resource_type found => $resource_name is in Unknown status"
   exit_code="0" #Doin..nothing
 fi
-echo $event_output,$resource_status,$exit_code
+echo "$event_output~$resource_status~$exit_code"

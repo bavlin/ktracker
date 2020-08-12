@@ -65,7 +65,7 @@ track() {
     while [[ $cur_idx_resource -lt $track_num ]]
     do
       resource_name=$(echo $resource_json_output | jq '.items['${cur_idx_resource}'].metadata.name' | tr -d "\"")
-      IFS=','
+      IFS='~'
       if [[ $resource_type_id = 1 ]]; then
         pods_track_output=$(bash pods.sh "$resource_json_output" "$resource_type" "$cur_idx_resource" "$resource_name" "$event")
         read -a resource_track_output <<< "$pods_track_output"
